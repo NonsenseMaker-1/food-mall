@@ -1,0 +1,18 @@
+name: site-health
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public homepage
+        run: |
+          set -e
+          URL="https://temporary-instant-poplar-2ji4sna.vercel.app/"
+          CODE=$(curl -fsS -o /dev/null -w "%{http_code}" "$URL")
+          test "$CODE" = "200"
+          curl -fsS "$URL" | grep -q "<html"
