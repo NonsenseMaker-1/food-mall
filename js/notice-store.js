@@ -83,6 +83,26 @@ function pickObj(incoming, prev, fallback) {
   return fallback || {};
 }
 
+function pickLiveImages(a, b) {
+  const out = {};
+  [b, a].forEach((im) => {
+    if (!im || typeof im !== "object") return;
+    Object.keys(im).forEach((k) => {
+      if (window.isLiveImage && window.isLiveImage(im[k])) out[k] = im[k];
+      else if (!window.isLiveImage && im[k]) out[k] = im[k];
+    });
+  });
+  return out;
+}
+
+window.isLiveImage = function isLiveImage(url) {
+  const s = String(url || "").trim();
+  if (!s) return false;
+  if (s.indexOf("data:image/") === 0 || s.indexOf("blob:") === 0) return true;
+  if (/^img\/(banner\d+\.jpg|p-|cat-)/i.test(s)) return false;
+  return true;
+};
+
 window.combineSite = function combineSite(defaults, local, remote) {
   const base = defaults && typeof defaults === "object" ? defaults : {};
   const loc = local && typeof local === "object" && !local.empty ? local : null;
@@ -105,8 +125,8 @@ window.combineSite = function combineSite(defaults, local, remote) {
     company: pickObj(newer.company, older.company, base.company),
     about: pickObj(newer.about, older.about, base.about),
     products: list("products", "productsTouched"),
-    images: Object.assign({}, base.images || {}, older.images || {}, newer.images || {}),
-    imagePos: Object.assign({}, base.imagePos || {}, older.imagePos || {}, newer.imagePos || {}),
+    images: pickLiveImages(newer.images, older.images),
+    imagePos: Object.assign({}, older.imagePos || {}, newer.imagePos || {}),
     savedAt: newer.savedAt || older.savedAt || 0,
     postsTouched: !!(newer.postsTouched || older.postsTouched),
     productsTouched: !!(newer.productsTouched || older.productsTouched),

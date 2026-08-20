@@ -47,22 +47,22 @@ window.CATEGORIES = [
 ];
 
 window.PRODUCTS = [
-  { "id": "p02", "name": "[제품명 01]", "spec": "[규격]", "category": "beef", "categoryName": "[수입소]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "img/p-beef.jpg" },
-  { "id": "p04", "name": "[제품명 02]", "spec": "[규격]", "category": "ipork", "categoryName": "[수입돼지]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "img/p-pork.jpg" },
-  { "id": "p05", "name": "[제품명 03]", "spec": "[규격]", "category": "chicken", "categoryName": "[닭/오리]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "img/p-chicken.jpg" },
-  { "id": "p06", "name": "[제품명 04]", "spec": "[규격]", "category": "seafood", "categoryName": "[수산물]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "img/p-seafood.jpg" },
-  { "id": "p07", "name": "[제품명 05]", "spec": "[규격]", "category": "grocery", "categoryName": "[식자재]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "img/p-grocery.jpg" },
-  { "id": "p08", "name": "[제품명 06]", "spec": "[규격]", "category": "gift", "categoryName": "[선물세트]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "img/p-gift.jpg" }
+  { "id": "p02", "name": "[제품명 01]", "spec": "[규격]", "category": "beef", "categoryName": "[수입소]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "" },
+  { "id": "p04", "name": "[제품명 02]", "spec": "[규격]", "category": "ipork", "categoryName": "[수입돼지]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "" },
+  { "id": "p05", "name": "[제품명 03]", "spec": "[규격]", "category": "chicken", "categoryName": "[닭/오리]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "" },
+  { "id": "p06", "name": "[제품명 04]", "spec": "[규격]", "category": "seafood", "categoryName": "[수산물]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "" },
+  { "id": "p07", "name": "[제품명 05]", "spec": "[규격]", "category": "grocery", "categoryName": "[식자재]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "" },
+  { "id": "p08", "name": "[제품명 06]", "spec": "[규격]", "category": "gift", "categoryName": "[선물세트]", "price": "[판매가]", "intro": "[제품 소개 한 줄]", "origin": "[원산지]", "volume": "[내용량]", "expiry": "[유통기한]", "storage": "[보관방법]", "ingredients": "[원재료명]", "image": "" }
 ];
 
 window.IMAGES = {
-  "hero": "img/banner1.jpg",
-  "company": "img/banner2.jpg",
-  "about": "img/banner3.jpg",
-  "notice": "img/banner3.jpg",
-  "products": "img/banner3.jpg",
-  "productPage": "img/banner1.jpg",
-  "contact": "img/banner2.jpg"
+  "hero": "",
+  "company": "",
+  "about": "",
+  "notice": "",
+  "products": "",
+  "productPage": "",
+  "contact": ""
 };
 
 window.IMAGE_POS = {

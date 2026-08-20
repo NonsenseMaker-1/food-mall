@@ -9,9 +9,11 @@ function showPrice(v) {
 
 function productCard(p) {
   const price = showPrice(p.price);
+  const live = window.isLiveImage ? window.isLiveImage(p.image) : !!p.image;
+  const img = live ? `<img src="${p.image}" alt="${esc(p.name)}" loading="lazy" decoding="async">` : "";
   return `
     <a class="card reveal" href="product.html?id=${p.id}">
-      <div class="thumb"><img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async"></div>
+      <div class="thumb">${img}</div>
       <div class="card-body">
         <div class="cat-name">${p.categoryName}</div>
         <h3>${p.name}</h3>
@@ -217,17 +219,42 @@ function applyPinnedNotice() {
   if (window.NOTICE) window.NOTICE.enabled = false;
 }
 
+function liveUrl(url) {
+  return window.isLiveImage ? window.isLiveImage(url) : !!String(url || "").trim();
+}
+
+function dropSampleMedia() {
+  const images = window.IMAGES || {};
+  const next = {};
+  Object.keys(images).forEach((k) => {
+    if (liveUrl(images[k])) next[k] = images[k];
+  });
+  window.IMAGES = next;
+  window.PRODUCTS = (window.PRODUCTS || []).map((p) => {
+    if (liveUrl(p.image)) return p;
+    return Object.assign({}, p, { image: "" });
+  });
+}
+
 function applyImages() {
   const im = window.IMAGES || {};
   const pos = window.IMAGE_POS || {};
   const at = (key) => pos[key] || "center center";
   const src = (el, url, key) => {
-    if (!el || !url) return;
+    if (!el) return;
+    if (!liveUrl(url)) {
+      el.removeAttribute("src");
+      return;
+    }
     el.src = url;
     el.style.objectPosition = at(key);
   };
   const bg = (el, url, key) => {
-    if (!el || !url) return;
+    if (!el) return;
+    if (!liveUrl(url)) {
+      el.style.backgroundImage = "";
+      return;
+    }
     el.style.backgroundImage = 'url("' + String(url).replace(/"/g, "%22") + '")';
     el.style.backgroundSize = "cover";
     el.style.backgroundRepeat = "no-repeat";
@@ -241,6 +268,7 @@ function applyImages() {
   bg(document.getElementById("banner-products"), im.products, "products");
   bg(document.getElementById("banner-product"), im.productPage, "productPage");
   bg(document.getElementById("banner-contact"), im.contact, "contact");
+  bg(document.getElementById("img-map"), im.contact, "contact");
 }
 
 function applySiteData(site) {
@@ -263,8 +291,9 @@ function applySiteData(site) {
   if (merged.company && merged.company.name) window.COMPANY = merged.company;
   if (merged.about && (merged.about.slogan || merged.about.story)) window.ABOUT = merged.about;
   if (Array.isArray(merged.products) && merged.products.length) window.PRODUCTS = merged.products;
-  if (merged.images) window.IMAGES = Object.assign({}, window.IMAGES || {}, merged.images);
+  if (merged.images) window.IMAGES = merged.images;
   if (merged.imagePos) window.IMAGE_POS = Object.assign({}, window.IMAGE_POS || {}, merged.imagePos);
+  dropSampleMedia();
 }
 
 function loadRemoteSite() {
@@ -448,7 +477,7 @@ function fillPage(instant) {
   if (page === "product") {
     const p = window.PRODUCTS.find((x) => x.id === qs("id")) || window.PRODUCTS[0];
     document.getElementById("product-box").innerHTML = `
-      <img src="${p.image}" alt="${p.name}">
+      ${liveUrl(p.image) ? `<img src="${p.image}" alt="${esc(p.name)}">` : `<div class="thumb"></div>`}
       <div>
         <div class="cat-name">${p.categoryName}</div>
         <h1 class="page-title">${p.name}</h1>
@@ -471,29 +500,27 @@ function fillPage(instant) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (window.loadLocalSite) applySiteData(window.loadLocalSite());
-  const header = document.getElementById("site-header");
-  const footer = document.getElementById("site-footer");
-  if (header) header.innerHTML = renderHeader();
-  if (footer) footer.innerHTML = renderFooter();
-  bindMenu();
-  fillPage(false);
+  dropSampleMedia();
+  const local = window.loadLocalSite && window.loadLocalSite();
+  if (local) applySiteData(local);
 
-  const later = (fn) => {
-    if (window.requestIdleCallback) return window.requestIdleCallback(fn, { timeout: 400 });
-    return setTimeout(fn, 200);
+  const paint = (instant) => {
+    const header = document.getElementById("site-header");
+    const footer = document.getElementById("site-footer");
+    if (header) header.innerHTML = renderHeader();
+    if (footer) footer.innerHTML = renderFooter();
+    bindMenu();
+    fillPage(instant);
   };
-  later(() => {
-    loadRemoteSite().then((site) => {
-      if (!site || site.empty) return;
-      const before = siteStamp();
-      applySiteData(site);
-      if (before === siteStamp()) return;
-      if (header) header.innerHTML = renderHeader();
-      if (footer) footer.innerHTML = renderFooter();
-      bindMenu();
-      fillPage(true);
-    });
+
+  paint(false);
+
+  loadRemoteSite().then((site) => {
+    if (!site || site.empty) return;
+    const before = siteStamp();
+    applySiteData(site);
+    if (before === siteStamp()) return;
+    paint(true);
   });
 });
 
