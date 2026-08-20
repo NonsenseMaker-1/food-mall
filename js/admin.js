@@ -405,9 +405,12 @@ async function adminPost(body) {
 
 function saveHint(saved) {
   if (saved && saved.localOnly) {
-    return "이 사이트에는 반영했습니다. 사진을 고른 뒤 홈페이지를 새로고침해 보세요.";
+    return "이 브라우저에는 반영했습니다. 손님 사이트 저장은 잠시 후 다시 시도해 주세요.";
   }
-  return "저장했습니다. 기존 글과 사진은 그대로 두고, 이번 수정만 반영했습니다.";
+  if (saved && saved.durable === false) {
+    return "이 화면에는 반영했습니다. 손님 사이트 저장은 잠시 후 다시 시도해 주세요.";
+  }
+  return "저장했습니다. 손님 사이트에도 같은 내용이 유지됩니다.";
 }
 
 async function persist(extra, okText) {

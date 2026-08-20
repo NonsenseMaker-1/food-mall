@@ -1,4 +1,13 @@
 {
+  "ignoreCommand": "git rev-parse --verify HEAD^ >/dev/null 2>&1 && git diff HEAD^ HEAD --quiet -- . ':!data/site.json'",
+  "functions": {
+    "api/site.js": {
+      "maxDuration": 30
+    },
+    "api/notice.js": {
+      "maxDuration": 30
+    }
+  },
   "headers": [
     {
       "source": "/img/(.*)",

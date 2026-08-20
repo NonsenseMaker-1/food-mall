@@ -1,0 +1,19 @@
+관리자 저장이 손님 사이트에도 남으려면, 아래를 한 번만 하면 됩니다.
+비번은 이 파일에 적지 마세요.
+
+1) GitHub 토큰 만들기
+   https://github.com/settings/tokens/new?scopes=public_repo&description=food-mall-admin-save
+   - public_repo 에 체크된 채로 Generate token
+   - 나온 토큰을 복사합니다. (한 번만 보입니다)
+
+2) Vercel에 넣기
+   https://vercel.com/dashboard
+   → temporary-instant-poplar-2ji4sna 프로젝트
+   → Settings → Environment Variables
+   → Name: FOODMALL_GITHUB_TOKEN
+   → Value: 방금 복사한 토큰
+   → Production, Preview, Development 모두 선택 후 Save
+
+3) Deployments 에서 최신 Production을 Redeploy 합니다.
+
+끝나면 채팅에 "넣었어"라고만 적어 주세요.

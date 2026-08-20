@@ -1,6 +1,10 @@
 const PASSWORD = process.env.FOODMALL_ADMIN_PASS || "admin";
 const fs = require("fs");
 const STORE = "/tmp/foodmall-site.json";
+const REPO = process.env.FOODMALL_GITHUB_REPO || "NonsenseMaker-1/food-mall";
+const BRANCH = process.env.FOODMALL_GITHUB_BRANCH || "main";
+const FILE_PATH = "data/site.json";
+const GH_TOKEN = process.env.FOODMALL_GITHUB_TOKEN || process.env.GITHUB_TOKEN || "";
 
 let memory = null;
 
@@ -19,6 +23,106 @@ function saveMemory(data) {
   try {
     fs.writeFileSync(STORE, JSON.stringify(data));
   } catch (e) {}
+}
+
+function ghHeaders(extra) {
+  const headers = Object.assign(
+    {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "food-mall-site",
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+    extra || {}
+  );
+  if (GH_TOKEN) headers.Authorization = "Bearer " + GH_TOKEN;
+  return headers;
+}
+
+function usableSite(data) {
+  return data && typeof data === "object" && !data.empty;
+}
+
+async function githubGet() {
+  const url =
+    "https://api.github.com/repos/" +
+    REPO +
+    "/contents/" +
+    FILE_PATH +
+    "?ref=" +
+    encodeURIComponent(BRANCH);
+  const res = await fetch(url, { headers: ghHeaders(), cache: "no-store" });
+  if (res.status === 404) return { data: null, sha: null };
+  if (!res.ok) {
+    const err = new Error("github-get-" + res.status);
+    err.status = res.status;
+    throw err;
+  }
+  const body = await res.json();
+  if (!body || !body.content) return { data: null, sha: body && body.sha };
+  const text = Buffer.from(String(body.content).replace(/\n/g, ""), "base64").toString("utf8");
+  return { data: JSON.parse(text), sha: body.sha };
+}
+
+async function githubPut(data, sha) {
+  if (!GH_TOKEN) {
+    const err = new Error("no-github-token");
+    err.status = 503;
+    throw err;
+  }
+  const payload = {
+    message: "Save homepage content from admin",
+    content: Buffer.from(JSON.stringify(data)).toString("base64"),
+    branch: BRANCH,
+  };
+  if (sha) payload.sha = sha;
+  const res = await fetch("https://api.github.com/repos/" + REPO + "/contents/" + FILE_PATH, {
+    method: "PUT",
+    headers: ghHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = new Error("github-put-" + res.status);
+    err.status = res.status;
+    throw err;
+  }
+  const body = await res.json();
+  return body && body.content && body.content.sha;
+}
+
+async function loadStored() {
+  const local = loadMemory();
+  try {
+    const remote = await githubGet();
+    if (usableSite(remote.data)) {
+      const localAt = local && local.savedAt ? Number(local.savedAt) : 0;
+      const remoteAt = Number(remote.data.savedAt || 0);
+      if (!usableSite(local) || remoteAt >= localAt) {
+        saveMemory(remote.data);
+        return remote.data;
+      }
+    }
+  } catch (e) {}
+  return usableSite(local) ? local : null;
+}
+
+async function persistStored(data) {
+  saveMemory(data);
+  let sha = null;
+  try {
+    const current = await githubGet();
+    sha = current.sha;
+  } catch (e) {}
+  try {
+    await githubPut(data, sha);
+    return { durable: true };
+  } catch (e) {
+    if (e && e.status === 409) {
+      const again = await githubGet();
+      await githubPut(data, again.sha);
+      return { durable: true };
+    }
+    throw e;
+  }
 }
 
 function cors(res) {
@@ -166,7 +270,7 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === "GET") {
-    const stored = loadMemory();
+    const stored = await loadStored();
     if (stored) {
       json(res, 200, stored);
       return;
@@ -200,7 +304,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const prev = loadMemory() || {};
+  const prev = (await loadStored()) || {};
   const next = {
     banner: cleanBanner(body.banner != null ? body.banner : prev.banner),
     posts: body.posts != null ? cleanPosts(body.posts) : prev.posts || [],
@@ -222,6 +326,10 @@ module.exports = async function handler(req, res) {
   if (!next.productsTouched && (!next.products || !next.products.length) && prev.products && prev.products.length) {
     next.products = prev.products;
   }
-  saveMemory(next);
-  json(res, 200, { ok: true });
+  try {
+    const saved = await persistStored(next);
+    json(res, 200, { ok: true, durable: !!saved.durable });
+  } catch (e) {
+    json(res, 503, { error: "persist", durable: false });
+  }
 };
