@@ -45,18 +45,27 @@ Vercel은 GitHub 원본을 인터넷에 보여 줍니다. 코드를 푸시하면
    새 PC에는 admin-pass.txt 를 직접 만들면 됩니다. (한 줄에 관리자 비밀번호)
 
 
-2. 다른 GitHub 계정으로 소유권 이전
+2. 다른 GitHub 계정으로 바로 넘기기
 --------------------------------
-저장소를 통째로 넘기면 틀이 그대로 갑니다.
+받을 사람의 GitHub 아이디만 있으면 됩니다. 비번은 필요 없습니다.
 
-1) https://github.com/NonsenseMaker-1/food-mall/settings/transfer
-2) 받을 계정 또는 조직 이름을 넣습니다.
-3) 받은 쪽에서 수락합니다.
-4) Vercel → 해당 프로젝트 → Settings → Git 에서
-   새 저장소 주소를 다시 연결합니다.
+방법 A) 이 폴더의 `계정넘기기.bat` 를 실행하고, 받을 아이디를 입력합니다.
 
-같이 쓰기만 하면 될 때는 Transfer 대신
-Settings → Collaborators 에 상대 GitHub 아이디를 초대하면 됩니다.
+방법 B) PowerShell:
+
+   .\계정넘기기.ps1 -NewOwner 받을아이디
+
+방법 C) 같이 관리만 먼저 하려면:
+
+   .\계정넘기기.ps1 -NewOwner 받을아이디 -InviteAdminOnly
+
+이전 요청이 가면 받는 사람이 GitHub 알림(또는 메일)에서 수락합니다.
+수락 후 저장소 주소는 https://github.com/받을아이디/food-mall 가 됩니다.
+
+그다음 Vercel → 해당 프로젝트 → Settings → Git 에서
+새 저장소 주소를 다시 연결합니다.
+
+화면에서 직접 할 때: https://github.com/NonsenseMaker-1/food-mall/settings/transfer
 
 
 3. 다른 Vercel 계정으로 호스팅만 옮기기
