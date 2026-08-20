@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>고객문의 | [가게 이름]</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&display=swap" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="contact">
+  <div id="site-header"></div>
+  <div class="page-banner" id="banner-contact" style="background-image:url(img/banner2.jpg)">
+    <div class="wrap">
+      <div class="crumb">홈 &gt; 고객문의</div>
+      <div class="en">CONTACT</div>
+      <h1>고객문의</h1>
+    </div>
+  </div>
+  <main class="page">
+    <div class="wrap inner contact-grid">
+      <form class="form" onsubmit="alert('문의 발송 연동 전입니다.');return false;">
+        <div class="en">INQUIRY</div>
+        <h2>문의하기</h2>
+        <div class="field"><label>이름</label><input placeholder="[이름]"></div>
+        <div class="field"><label>연락처</label><input placeholder="[연락처]"></div>
+        <div class="field"><label>내용</label><textarea rows="5" placeholder="[문의 내용]"></textarea></div>
+        <button class="btn" type="submit">보내기</button>
+      </form>
+      <aside class="panel">
+        <div class="en">LOCATION</div>
+        <h2>오시는 길</h2>
+        <div class="map" style="background-image:url(img/banner3.jpg)"></div>
+        <p>전화: <b id="c-phone"></b></p>
+        <p>이메일: <b id="c-email"></b></p>
+        <p>주소: <b id="c-addr"></b></p>
+        <p>운영: <b id="c-hours"></b></p>
+        <p class="note">지도는 샘플입니다. 실제 위치 지도로 교체하세요.</p>
+      </aside>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/data.js"></script>
+  <script src="js/notice.js"></script>
+  <script src="js/notice-store.js"></script>
+  <script src="js/common.js"></script>
+</body>
+</html>

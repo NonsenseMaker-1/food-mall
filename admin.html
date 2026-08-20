@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>관리자 | 사이트 관리</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&display=swap" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .admin { width: min(1120px, calc(100% - 32px)); margin: 28px auto 64px; background: #fff; padding: 32px; }
+    .admin h1 { font-family: "Noto Serif KR", serif; font-size: 26px; margin: 0 0 8px; }
+    .admin h2 { font-family: "Noto Serif KR", serif; font-size: 18px; margin: 28px 0 12px; }
+    .preview { border: 1px dashed var(--line); margin: 12px 0 18px; overflow: hidden; }
+    .ok { color: #2d6a4f; font-size: 13px; }
+    .err { color: #9b2226; font-size: 13px; }
+    .admin-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 24px 0 8px; border-bottom: 1px solid var(--line); }
+    .admin-tabs button {
+      border: 0; background: none; padding: 10px 14px; cursor: pointer;
+      font: inherit; font-weight: 700; color: var(--muted);
+    }
+    .admin-tabs button.on { color: var(--navy); box-shadow: inset 0 -2px 0 var(--gold); }
+    .admin-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .photo-card { border: 1px solid var(--line); padding: 14px; background: var(--bg); }
+    .photo-card.wide { grid-column: 1 / -1; }
+    .photo-card img { width: 100%; height: 100%; object-fit: cover; background: #ddd; display: block; }
+    .photo-frame { width: 100%; overflow: hidden; background: #d8d4cc; margin: 10px 0 12px; }
+    .photo-frame.hero { aspect-ratio: 16 / 9; }
+    .photo-frame.company, .photo-frame.about { aspect-ratio: 3 / 2; }
+    .photo-frame.banner { aspect-ratio: 5 / 1; }
+    .photo-frame.product { aspect-ratio: 4 / 3; }
+    .photo-card .row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .prod-thumb-wrap { width: 100%; max-width: 360px; aspect-ratio: 4 / 3; overflow: hidden; background: #ddd; margin: 8px 0; }
+    .prod-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .crop-modal {
+      position: fixed; inset: 0; z-index: 80;
+      background: rgba(12, 16, 28, .72);
+      display: grid; place-items: center;
+      padding: 16px;
+    }
+    .crop-modal[hidden] { display: none; }
+    .crop-panel {
+      width: min(880px, 100%);
+      background: #fff;
+      padding: 22px;
+      max-height: calc(100dvh - 32px);
+      overflow: auto;
+    }
+    .crop-stage {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #1c2740;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+    }
+    .crop-stage:active { cursor: grabbing; }
+    .crop-stage img {
+      position: absolute;
+      left: 0; top: 0;
+      max-width: none;
+      display: block;
+      pointer-events: none;
+    }
+    .crop-zoom { width: 100%; margin: 14px 0; }
+    @media (max-width: 720px) {
+      .admin { padding: 20px 16px; width: min(1120px, calc(100% - 16px)); }
+      .photo-grid { grid-template-columns: 1fr; }
+      .photo-card.wide { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin">
+    <p class="en">ADMIN</p>
+    <h1>사이트 관리</h1>
+    <p class="spec">손님 메뉴에는 이 화면이 없습니다. 공지, 글, 제품, 사진을 여기서 따로 고칩니다.</p>
+
+    <form id="login-form">
+      <div class="field">
+        <label>관리자 비밀번호</label>
+        <input id="password" type="password" autocomplete="current-password" />
+      </div>
+      <button class="btn" type="submit">들어가기</button>
+      <p class="spec" style="margin-top:12px">초기 비밀번호: admin</p>
+      <p class="err" id="login-err"></p>
+    </form>
+
+    <div id="edit-form" hidden>
+      <div class="admin-tabs" id="tabs">
+        <button type="button" class="on" data-tab="notice">공지</button>
+        <button type="button" data-tab="products">제품</button>
+        <button type="button" data-tab="photos">사진·배너</button>
+        <button type="button" data-tab="site">사이트 글</button>
+      </div>
+
+      <section data-panel="notice">
+        <div id="list-view">
+          <h2>공지 글</h2>
+          <p class="spec">제목을 누르면 내용을 고칩니다. 중요 공지는 목록 맨 위와 사이트 상단에 뜹니다.</p>
+          <div id="pin-preview" class="preview"></div>
+          <div id="posts"></div>
+          <p style="margin-top:14px"><button class="btn" type="button" id="add-post">공지 글 추가</button></p>
+        </div>
+        <div id="edit-view" hidden>
+          <button class="btn ghost" type="button" id="back-list">목록으로</button>
+          <h2 id="edit-heading">공지 쓰기</h2>
+          <div class="field"><label>제목</label><input id="p-title" maxlength="80" /></div>
+          <div class="field"><label>날짜</label><input id="p-date" type="date" required /></div>
+          <label class="field"><input id="p-important" type="checkbox" /> 중요 공지 — 목록 맨 위와 사이트 상단에 띄우기</label>
+          <div class="field"><label>내용</label><textarea id="p-body" rows="8"></textarea></div>
+          <div class="admin-actions">
+            <button class="btn" type="button" id="save-post">적용</button>
+            <button class="btn ghost" type="button" id="del-post">삭제</button>
+          </div>
+        </div>
+      </section>
+
+      <section data-panel="site" hidden>
+        <h2>가게 정보</h2>
+        <div class="field"><label>가게 이름</label><input id="shop-name" /></div>
+        <div class="field"><label>한 줄 소개</label><input id="shop-tagline" /></div>
+        <div class="field"><label>전화</label><input id="shop-phone" /></div>
+        <div class="field"><label>이메일</label><input id="shop-email" /></div>
+        <div class="field"><label>평일 운영</label><input id="shop-hoursWeek" /></div>
+        <div class="field"><label>주말 운영</label><input id="shop-hoursWeekend" /></div>
+        <h2>회사 정보</h2>
+        <div class="field"><label>상호</label><input id="company-name" /></div>
+        <div class="field"><label>대표</label><input id="company-ceo" /></div>
+        <div class="field"><label>설립연도</label><input id="company-founded" inputmode="numeric" maxlength="4" placeholder="2010" /></div>
+        <div class="field"><label>사업자등록번호</label><input id="company-bizNo" /></div>
+        <div class="field"><label>통신판매업신고</label><input id="company-mailOrderNo" /></div>
+        <div class="field"><label>주소</label><input id="company-address" /></div>
+        <div class="field"><label>생산지/공장</label><input id="company-factory" /></div>
+        <div class="field"><label>개인정보관리책임자</label><input id="company-privacyOfficer" /></div>
+        <h2>소개 글</h2>
+        <div class="field"><label>슬로건</label><input id="about-slogan" /></div>
+        <div class="field"><label>메인 소개</label><textarea id="about-lead" rows="2"></textarea></div>
+        <div class="field"><label>인사말</label><textarea id="about-greeting" rows="5"></textarea></div>
+        <div class="field"><label>회사 소개</label><textarea id="about-story" rows="6"></textarea></div>
+        <div class="field"><label>비전</label><textarea id="about-vision" rows="3"></textarea></div>
+        <h2>가치 세 가지</h2>
+        <div class="field"><label>가치 1 제목 / 설명</label><input id="v0-t" /><input id="v0-d" style="margin-top:8px" /></div>
+        <div class="field"><label>가치 2 제목 / 설명</label><input id="v1-t" /><input id="v1-d" style="margin-top:8px" /></div>
+        <div class="field"><label>가치 3 제목 / 설명</label><input id="v2-t" /><input id="v2-d" style="margin-top:8px" /></div>
+        <h2>숫자 세 가지</h2>
+        <div class="field"><label>항목 1 숫자 / 이름</label><input id="f0-n" inputmode="numeric" placeholder="1,000" /><input id="f0-l" style="margin-top:8px" placeholder="거래처" /></div>
+        <div class="field"><label>항목 2 숫자 / 이름</label><input id="f1-n" inputmode="numeric" placeholder="20" /><input id="f1-l" style="margin-top:8px" placeholder="취급 품목" /></div>
+        <div class="field"><label>항목 3 숫자 / 이름</label><input id="f2-n" inputmode="numeric" placeholder="10" /><input id="f2-l" style="margin-top:8px" placeholder="공급 경력" /></div>
+        <div class="admin-actions">
+          <button class="btn" type="button" id="save-site">사이트 글 저장</button>
+        </div>
+      </section>
+
+      <section data-panel="products" hidden>
+        <div id="product-list-view">
+          <h2>제품</h2>
+          <p class="spec">이름을 누르면 가격과 사진을 고칩니다.</p>
+          <div id="product-list"></div>
+          <p style="margin-top:14px"><button class="btn" type="button" id="add-product">제품 추가</button></p>
+        </div>
+        <div id="product-edit-view" hidden>
+          <button class="btn ghost" type="button" id="back-products">목록으로</button>
+          <h2 id="product-heading">제품 고치기</h2>
+          <div class="field"><label>제품명</label><input id="pr-name" /></div>
+          <div class="field"><label>판매가</label><input id="pr-price" inputmode="numeric" placeholder="10,000원" /></div>
+          <div class="field"><label>분류 이름</label><input id="pr-categoryName" /></div>
+          <div class="field"><label>한 줄 소개</label><textarea id="pr-intro" rows="3"></textarea></div>
+          <div class="field"><label>규격</label><input id="pr-spec" /></div>
+          <div class="field"><label>원산지</label><input id="pr-origin" /></div>
+          <div class="field"><label>내용량</label><input id="pr-volume" /></div>
+          <div class="field"><label>보관</label><input id="pr-storage" /></div>
+          <div class="field"><label>원재료</label><textarea id="pr-ingredients" rows="3"></textarea></div>
+          <div class="field">
+            <label>제품 사진</label>
+            <div class="prod-thumb-wrap"><img class="prod-thumb" id="pr-preview" alt=""></div>
+            <div class="row">
+              <button class="btn" type="button" id="pr-pick">사진 자르기</button>
+            </div>
+            <input id="pr-file" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+          </div>
+          <div class="admin-actions">
+            <button class="btn" type="button" id="save-product">이 제품 저장</button>
+            <button class="btn ghost" type="button" id="del-product">삭제</button>
+          </div>
+        </div>
+      </section>
+
+      <section data-panel="photos" hidden>
+        <h2>사진·배너</h2>
+        <p class="spec">미리보기 칸이 홈페이지와 같은 화면 비율입니다. 사진을 고른 뒤 박스를 기준으로 자르세요.</p>
+        <div class="photo-grid" id="photo-grid"></div>
+        <div class="admin-actions">
+          <button class="btn" type="button" id="save-photos">사진 저장</button>
+        </div>
+      </section>
+
+      <p id="save-msg"></p>
+      <p style="margin-top:24px"><a class="btn ghost" href="index.html">사이트로</a></p>
+    </div>
+  </div>
+  <div id="crop-modal" class="crop-modal" hidden>
+    <div class="crop-panel">
+      <h2 id="crop-title" style="margin-top:0">사진 자르기</h2>
+      <p class="spec">어두운 상자 안이 홈페이지에 보이는 화면입니다. 사진을 드래그하고, 아래 막대로 확대하세요.</p>
+      <div class="crop-stage" id="crop-stage"><img id="crop-img" alt=""></div>
+      <input class="crop-zoom" id="crop-zoom" type="range" min="100" max="280" value="100" />
+      <div class="admin-actions">
+        <button class="btn" type="button" id="crop-ok">이 화면으로 자르기</button>
+        <button class="btn ghost" type="button" id="crop-cancel">취소</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/data.js"></script>
+  <script src="js/notice.js"></script>
+  <script src="js/notice-store.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

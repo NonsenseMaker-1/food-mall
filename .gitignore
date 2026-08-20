@@ -1,0 +1,7 @@
+admin-pass.txt
+serve.py
+.vercel
+.netlify
+__pycache__/
+.deploy-state.json
+*.pyc
